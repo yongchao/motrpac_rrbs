@@ -1,0 +1,1 @@
+../../motrpac/bin/bowtie2.sh

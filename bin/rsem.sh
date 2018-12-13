@@ -1,0 +1,1 @@
+../../motrpac/bin/rsem.sh

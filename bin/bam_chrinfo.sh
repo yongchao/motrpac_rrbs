@@ -1,0 +1,1 @@
+../../motrpac/bin/bam_chrinfo.sh

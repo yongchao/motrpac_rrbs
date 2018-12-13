@@ -1,0 +1,1 @@
+../motrpac/rna-seq.snakefile

@@ -1,0 +1,1 @@
+../../motrpac/bin/UMI_rsem_rename.awk

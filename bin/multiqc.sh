@@ -1,0 +1,1 @@
+../../motrpac/bin/multiqc.sh
