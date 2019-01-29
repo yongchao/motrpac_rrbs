@@ -1,1 +1,1 @@
-../../motrpac/bin/Snakemake_lsf.sh
+../../motrpac_rnaseq/bin/Snakemake_lsf.sh

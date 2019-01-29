@@ -1,1 +1,0 @@
-../../motrpac/bin/bcl2fastq.sh

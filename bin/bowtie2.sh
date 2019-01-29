@@ -1,1 +1,1 @@
-../../motrpac/bin/bowtie2.sh
+../../motrpac_rnaseq/bin/bowtie2.sh

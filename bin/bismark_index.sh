@@ -1,1 +1,0 @@
-../../motrpac/bin/bismark_index.sh

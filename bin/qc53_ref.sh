@@ -1,1 +1,0 @@
-../../motrpac/bin/qc53_ref.sh

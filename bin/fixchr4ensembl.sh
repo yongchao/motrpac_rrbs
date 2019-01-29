@@ -1,1 +1,0 @@
-../../motrpac/bin/fixchr4ensembl.sh

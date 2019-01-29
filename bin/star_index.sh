@@ -1,1 +1,0 @@
-../../motrpac/bin/star_index.sh

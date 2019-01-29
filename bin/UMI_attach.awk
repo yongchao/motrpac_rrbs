@@ -1,1 +1,1 @@
-../../motrpac/bin/UMI_attach.awk
+../../motrpac_rnaseq/bin/UMI_attach.awk

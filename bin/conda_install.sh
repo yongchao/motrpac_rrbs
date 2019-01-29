@@ -1,1 +1,0 @@
-../../motrpac/bin/conda_install.sh

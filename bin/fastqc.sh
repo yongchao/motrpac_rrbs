@@ -1,1 +1,1 @@
-../../motrpac/bin/fastqc.sh
+../../motrpac_rnaseq/bin/fastqc.sh

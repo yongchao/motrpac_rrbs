@@ -1,1 +1,1 @@
-../../motrpac/bin/multiqc.sh
+../../motrpac_rnaseq/bin/multiqc.sh

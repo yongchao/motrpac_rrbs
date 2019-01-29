@@ -1,1 +1,1 @@
-../../motrpac/bin/unload_motrpac.sh
+../../motrpac_rnaseq/bin/unload_motrpac.sh

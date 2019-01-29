@@ -1,1 +1,0 @@
-../../motrpac/bin/bam_uniq.sh

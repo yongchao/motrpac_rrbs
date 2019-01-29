@@ -1,1 +1,0 @@
-../../motrpac/bin/featureCounts.sh
