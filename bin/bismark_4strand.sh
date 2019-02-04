@@ -12,6 +12,8 @@ for i in ${!sample[@]}; do
     fi
     ext=_R1_bismark_bt2${ext}_report.txt
     printf $s"\t"
-    grep "((converted) top strand)" -A 3 ${s}$ext |cut -f 2 |tr "\n" "\t"|sed 's/\t$//'
+    grep "((converted) top strand)" -A 3 ${s}$ext |sort | cut -f 2 |tr "\n" "\t"|sed 's/\t$//'
+    #The sort is necessary due to the different ordering between single and paied ends for the
+    #four strands
     printf "\n"
 done

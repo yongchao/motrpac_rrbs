@@ -22,12 +22,20 @@ fi
 
 cd $odir
 
-Ncore=$(($threads/5))
+Ncore=$(($threads/4))
 if (($Ncore==0));then
     Ncore=1
 fi
 date
 bismark $gdir --multicore $Ncore $cmd
+
+#find out how many have been matched
+nreads=$(samtools view -c $bam)
+
+if(($nreads==0)); then
+    #no-deduplicates
+    exit 0
+fi
 
 if [[ -e ../fastq_attach ]]; then
     #UMI
@@ -39,11 +47,9 @@ else
     #Just use the position to deduplicate, good for MethCAP data
     deduplicate_bismark $optp --bam $bam >${SID}_dedup.txt
 fi
-
 bam=$(basename $bam .bam).deduplicated.bam
 date
 bismark_methylation_extractor --multicore $Ncore --comprehensive --bedgraph $bam
 bismark2report -o ${SID}.html\
 	       -a $align_report
-
 

@@ -2,7 +2,7 @@
 set -eu -o pipefail
 
 index_adapter=AGATCGGAAGAGC
-univ_adapter=AAATCAAAAAAAC
+index2_adapter=AAATCAAAAAAAC
 #This program include two steps, one is trim_galore
 #and the othr is nugen way of removing diversity
 
@@ -12,6 +12,7 @@ if [[ $fd == fastq_attach ]]; then
     umi=1
 else
     umi=0
+    index2_adapter=$index_adapter #note that with no umi, we are using the MethCAP data and with MethCAP primer
 fi
        
 R2=""
@@ -19,7 +20,7 @@ opt2=""
 paired=0
 if (( $# == 2 )); then
     R2=$(basename $2 .fastq.gz)
-    opt2="--paired -a2 $univ_adapter"
+    opt2="--paired -a2 $index2_adapter"
     paired=1
 fi
 

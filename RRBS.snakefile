@@ -16,9 +16,9 @@
 #work to do for the lambda to get the bisulfite conversion efficientcy, divided into three groups or not
 #
 include: "sample_sub.snakefile"
-ruleorder: trim_single > trim
+ruleorder: trim>trim_single
         
-localrules: bismark_all
+localrules: bismark_all, pairedness,fastqc_all
 rule bismark_all:
     input:        
         expand("bismark/log/OK.{sample}",sample=samples),
@@ -31,11 +31,15 @@ rule bismark_all:
     shell:
         '''
         cd lambda
+        set +e #not escaping due to the divison of zero
         bismark2summary
+        set -e
         bismark_4strand.sh >bismark_4strand.txt
         
         cd ../bismark
+        set +e
 	bismark2summary
+        set -e
         bismark_4strand.sh >bismark_4strand.txt
 
         cd ..

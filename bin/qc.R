@@ -65,6 +65,13 @@ rownames(fastqc)<-sub("_R1$","",rownames(fastqc))
 TRIM<-dir.exists("fastq_trim")
 if(TRIM){
     trim<-readqcinfo("pre_align","cutadapt")
+    ##we need to average for the trim_galore
+    id<-(1:(nrow(trim)/2))*2
+    if(sum(sub("_R2$","_R1",rownames(trim)[id])
+           !=rownames(trim)[id-1])!=0){
+        stop("the R1 and R2 files do not match in the trim info")
+    }
+    trim<-(trim[id-1,]+trim[id,])/2
     rownames(trim)<-sub("_R[12]$","",rownames(trim))
     if(checknames(trim,"trim")==2){
         trim<-trim[samples,]
