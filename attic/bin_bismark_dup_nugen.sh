@@ -10,7 +10,7 @@ SID=$1
 threads=$2
 bam=${SID}_R1_bismark_bt2_pe.bam
 set +e #head has a problem with this
-len=$(samtools view $bam |head -1 |awk '{umi=gensub("^.*:","","a",$1); print length(umi)}')
+len=$(samtools view $bam |head -1 |awk '{umi=gensub("^.*:","",1,$1); print length(umi)}')
 set -e
 samtools sort -m 2G $bam  -T ../tmpdir/ -o ${SID}_sorted.bam -@ $(($threads-1))
 
