@@ -22,7 +22,7 @@ getqc<-function(folder){
                   "%CHG"=x[,12]/(x[,12]+x[,13])*100,
                   "%CHH"=x[,14]/(x[,14]+x[,15])*100,check.names=FALSE)
     if(dir.exists("fastq_attach")){
-        colnames(y)[10]<-"%umi_dip"
+        colnames(y)[10]<-"%umi_dup"
     }
     y
 }
