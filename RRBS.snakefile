@@ -91,9 +91,12 @@ rule bismark:
         bismark.sh {threads} {gdir} bismark {input} >&{log}
         echo OK>{output}
         '''
+def raw_fastq_info(wildcards):
+    return(fastq_info(wildcards,"fastq_raw/"))
+
 rule phix:
     input:
-        fastq_info
+        raw_fastq_info
     output:
         "phix/{sample}.txt"
     threads: 6

@@ -49,9 +49,12 @@ checknames<-function(x,title)
 ##read the fastqc info
 samples<-y[,1]
 rownames(y)<-samples
+NS<-length(samples)
 y<-y[,-1]
 fastqc<-readqcinfo("pre_align","fastqc")[,c("Total Sequences","%GC","total_deduplicated_percentage")]
+PAIRED<-FALSE
 if(2*length(grep("_R2$",rownames(fastqc)))==nrow(fastqc)){
+    PAIRED<-TRUE
     ##paired, so we do the average of R1 and R2
     id<-(1:(nrow(fastqc)/2))*2
     if(sum(sub("_R2$","_R1",rownames(fastqc)[id])
@@ -87,18 +90,49 @@ rownames(fastqc)<-sub("^fastqc \\| ","",rownames(fastqc))
 if(checknames(fastqc,"fastqc")==2){
     fastqc<-fastqc[samples,]
 }
-qc<-NULL
-if(TRIM) qc<-cbind("reads_raw"=fastqc_raw[,1],"%trimmed"=round(100-as.numeric(y[,1])/fastqc_raw[,"Total Sequences"]*100,dig=2),
-                   "%trimmed_bases"=round(trim[,"percent_trimmed"],dig=2))
-qc<-cbind(qc,reads=y[,1],"%GC"=round(fastqc[,"%GC"],dig=2),"%dup_sequence"=round(100-fastqc[,"total_deduplicated_percentage"],dig=2))
-##read phix
-phix<-rep(NA,length(samples))
-for(i in 1:length(samples)){
+
+##read phix and adapter_detected
+misc<-matrix(NA,NS,4)
+colnames(misc)<-c("phix","adapter_detected","trimmed","no_MSPI")
+for(i in 1:NS){
     SID<-samples[i]
     zz<-pipe(paste0("tail -1 ","phix/",SID,".txt |tr -d %"))
-    phix[i]<-scan(zz,n=1,quiet=TRUE)
+    misc[i,1]<-scan(zz,n=1,quiet=TRUE)
     close(zz)
+
+    if(TRIM){
+        zz<-pipe(paste0("grep \"^Reads with adapters:\" fastq_trim/log/log.",SID,"|awk -F '[(%]' '{print $2}'"))
+        zval<-scan(zz,quiet=TRUE)
+        if(length(zval)!= PAIRED+1){
+            stop("the fastq_trim log for the contained adapter% is not consistent with the pairedness of the fastq data")
+        }
+        misc[i,2]<-mean(zval)
+        close(zz)
+
+        zz<-pipe(paste0("grep \"Fwd:  D0:\" fastq_trim/log/log.",SID))
+        zval<-scan(zz,"",quiet=TRUE)
+        close(zz)
+        if(length(zval)!=7 && zval[1]!="Fwd:" &&
+           length(grep("^other=",zval[6]))!=1 &&
+           length(grep("^(total=",zval[7]))!=1)
+        {
+            stop("The diversity adapter information is incorrect for sample",
+                 SID)
+        }
+        z1<-as.numeric(sub("other=","",zval[6]))
+        z2<-as.numeric(sub("\\(total=(.*)\\)","\\1",zval[7],perl=TRUE))
+        misc[i,3]<-100-z2/fastqc_raw[i,1]*100
+        misc[i,4]<-z1/z2*100
+    }
 }
-y<-cbind(qc,"%phix"=round(phix,dig=2),round(y[,-1],dig=2))
+colnames(misc)<-paste0("%",colnames(misc))
+misc<-round(misc,dig=2)
+qc<-NULL
+if(TRIM) qc<-cbind("reads_raw"=fastqc_raw[,1],misc[,-1],
+                   "%trimmed_bases"=round(trim[,"percent_trimmed"],dig=2),
+                   "%removed"=round(100-as.numeric(y[,1])/fastqc_raw[,1]*100,dig=2))
+qc<-cbind(qc,reads=y[,1],"%GC"=round(fastqc[,"%GC"],dig=2),"%dup_sequence"=round(100-fastqc[,"total_deduplicated_percentage"],dig=2))
+
+y<-cbind(qc,"%phix"=misc[,1],round(y[,-1],dig=2))
 
 write.table(y,"bismark_qc.csv",sep=",",col.names=NA,row.name=TRUE)
