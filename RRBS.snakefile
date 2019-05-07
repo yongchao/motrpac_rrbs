@@ -58,7 +58,8 @@ rule trim_single:
     input:        
         trim_input+"{sample}_R1.fastq.gz"
     output:
-        "fastq_trim/{sample}_R1.fastq.gz"
+        "fastq_trim/{sample}_R1.fastq.gz",
+        temp("fastq_trim/{sample}_R1_val.fastq.gz")
     log:
         "fastq_trim/log/log.{sample}"
     shell:
@@ -69,7 +70,8 @@ rule trim:
     input:        
         expand(trim_input+"{{sample}}_{R}.fastq.gz",R=["R1","R2"])
     output:
-        expand("fastq_trim/{{sample}}_{R}.fastq.gz",R=["R1","R2"])
+        expand("fastq_trim/{{sample}}_{R}.fastq.gz",R=["R1","R2"]),
+        temp(expand("fastq_trim/{{sample}}_{R}_val.fq.gz",R=["R1","R2"]))
     priority:
         10 #This is preferred than trim_single, with default priority value of zero
     log:
@@ -91,12 +93,14 @@ rule bismark:
         bismark.sh {threads} {gdir} bismark {input} >&{log}
         echo OK>{output}
         '''
-def raw_fastq_info(wildcards):
-    return(fastq_info(wildcards,"fastq_raw/"))
+#this takes file before MSPI removal
+def trim_fastq_info(wildcards):
+    sid=wildcards.sample
+    return(expand("fastq_trim/{sample}_{R}_val.fq.gz",sample=sid,R=R[sid]))
 
 rule phix:
     input:
-        raw_fastq_info
+        trim_fastq_info
     output:
         "phix/{sample}.txt"
     threads: 6
@@ -105,7 +109,7 @@ rule phix:
         gdir_root=$(dirname {gdir})
         gref=$gdir_root/misc_data/phix/phix
         out_tmp=phix/{wildcards.sample}_tmp.txt
-        bowtie2.sh $gref {threads} {input} >& $out_tmp
+        bowtie2.sh -d phix $gref {threads} {input} >& $out_tmp
         mv $out_tmp {output}
         '''
 def fastqc_all_input(wildcards):
