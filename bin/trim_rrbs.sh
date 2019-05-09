@@ -42,10 +42,10 @@ if [[ $(dirname $1) ==  fastq_attach ]]; then
     fi
     python2 $MOTRPAC_root/nugen/trimRRBSdiversityAdaptCustomers.py -1 ${R1}_val_1.fq.gz $opt2
     mv ${R1}_val_1.fq_trimmed.fq.gz $R1.fastq.gz
-    rm ${R1}_val_1.fq.gz
+    mv ${R1}_val_1.fq.gz ${R1}_val.fq.gz
     if(($paired==1));then
 	mv ${R2}_val_2.fq_trimmed.fq.gz $R2.fastq.gz
-	rm ${R2}_val_2.fq.gz
+	mv ${R2}_val_2.fq.gz ${R2}_val.fq.gz
     fi
 else
     mv ${R1}_val_1.fq.gz ${R1}.fastq.gz

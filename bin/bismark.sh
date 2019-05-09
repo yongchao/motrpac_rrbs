@@ -4,7 +4,8 @@ set -x
 threads=$1
 gdir=$2
 odir=$3
-shift 3
+tmpdir_root=$4
+shift 4
 SID=$(basename $1 _R1.fastq.gz)
 if(($#==2)); then
     ##paired
@@ -27,8 +28,10 @@ if (($Ncore==0));then
     Ncore=1
 fi
 date
-bismark $gdir --multicore $Ncore $cmd
 
+tmpdir=$(mktemp -d -p $tmpdir_root bismark.${SID}.XXX)
+bismark $gdir --multicore $Ncore --temp_dir $tmpdir $cmd
+rm -rf $tmpdir
 #find out how many have been matched
 nreads=$(samtools view -c $bam)
 
