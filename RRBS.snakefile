@@ -109,7 +109,7 @@ rule phix:
         gdir_root=$(dirname {gdir})
         gref=$gdir_root/misc_data/phix/phix
         out_tmp=phix/{wildcards.sample}_tmp.txt
-        bowtie2.sh $gref {threads} {input} >& $out_tmp
+        bowtie2.sh -d phix $gref {threads} {input} >& $out_tmp
         mv $out_tmp {output}
         '''
 def fastqc_all_input(wildcards):
