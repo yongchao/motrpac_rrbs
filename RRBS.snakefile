@@ -24,6 +24,7 @@ rule bismark_all:
         expand("bismark/log/OK.{sample}",sample=samples),
         expand("lambda/log/OK.{sample}",sample=samples),
         expand("phix/{sample}.txt",sample=samples),
+        expand("chr_info/{sample}.txt",sample=samples),
         "log/OK.pre_align_QC",
         "pairedness"
     output:
@@ -38,7 +39,7 @@ rule bismark_all:
         
         cd ../bismark
         set +e
-	bismark2summary
+	    bismark2summary
         set -e
         bismark_4strand.sh >bismark_4strand.txt
 
@@ -159,3 +160,12 @@ rule bismark_lambda:
         bismark.sh {threads} $gref lambda {tmpdir} {input} >&{log}
         echo OK>{output}
         '''
+rule chr_info:
+    input:
+        "bismark/{sample}_R1_bismark_bt2_pe.deduplicated.bam"
+    output:
+        "chr_info/{sample}.txt"
+    shell:
+        '''                                                                                                                                                                                                        bam_chrinfo.sh {input}                                                                                                                                                                                     '''
+
+

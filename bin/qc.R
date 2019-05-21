@@ -127,12 +127,34 @@ for(i in 1:NS){
 }
 colnames(misc)<-paste0("%",colnames(misc))
 misc<-round(misc,dig=2)
+
+
+##Read the chr_info.txt
+chr_info<-matrix(NA,NS,5)
+colnames(chr_info)<-c("chrX","chrY","chrM","chrAuto","contig")
+
+readchr<-function(sid){
+    x<-read.table(paste0("chr_info/",sid,".txt"),
+                  row.names=2,strip.white=TRUE)
+    xt<-sum(x[,1])
+    y<-x[c("chrX","chrY","chrM"),1]/xt*100
+    y<-c(y,sum(x[grep("^chr[1-9]",rownames(x)),1])/xt*100)
+    y[is.na(y)]<-0
+    c(y,100-sum(y))
+}
+    
+for(i in 1:NS){
+    chr_info[i,1:5]<-readchr(samples[i])
+}
+colnames(chr_info)<-paste0("%",colnames(chr_info))
+chr_info<-round(chr_info,dig=2)
+
 qc<-NULL
 if(TRIM) qc<-cbind("reads_raw"=fastqc_raw[,1],misc[,-1],
                    "%trimmed_bases"=round(trim[,"percent_trimmed"],dig=2),
                    "%removed"=round(100-as.numeric(y[,1])/fastqc_raw[,1]*100,dig=2))
 qc<-cbind(qc,reads=y[,1],"%GC"=round(fastqc[,"%GC"],dig=2),"%dup_sequence"=round(100-fastqc[,"total_deduplicated_percentage"],dig=2))
 
-y<-cbind(qc,"%phix"=misc[,1],round(y[,-1],dig=2))
+y<-cbind(qc,"%phix"=misc[,1],chr_info,round(y[,-1],dig=2))
 
 write.table(y,"bismark_qc.csv",sep=",",col.names=NA,row.name=TRUE)
