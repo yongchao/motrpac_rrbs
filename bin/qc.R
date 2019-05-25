@@ -156,5 +156,7 @@ if(TRIM) qc<-cbind("reads_raw"=fastqc_raw[,1],misc[,-1],
 qc<-cbind(qc,reads=y[,1],"%GC"=round(fastqc[,"%GC"],dig=2),"%dup_sequence"=round(100-fastqc[,"total_deduplicated_percentage"],dig=2))
 
 y<-cbind(qc,"%phix"=misc[,1],chr_info,round(y[,-1],dig=2))
+colnames(y)<-sub("^%","pct_",colnames(y))
+colnames(y)<-sub("^lambda_%","lambda_pct_",colnames(y))
 
 write.table(y,"bismark_qc.csv",sep=",",col.names=NA,row.name=TRUE)
