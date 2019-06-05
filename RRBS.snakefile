@@ -85,14 +85,15 @@ rule bismark:
     input:
         fastq_info
     output:
-        "bismark/log/OK.{sample}"
+        state="bismark/log/OK.{sample}",
+        bam="bismark/{sample}_R1_bismark_bt2_pe.deduplicated.bam"
     log:
         "bismark/log/{sample}.log"
     threads: 20
     shell:
         '''
         bismark.sh {threads} {gdir} bismark {tmpdir} {input} >&{log}
-        echo OK>{output}
+        echo OK>{output.state}
         '''
 #this takes file before MSPI removal
 def trim_fastq_info(wildcards):
