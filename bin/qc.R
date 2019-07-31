@@ -15,8 +15,8 @@ getqc<-function(folder){
                   "%Ambi"=x[,5]/x[,2]*100,
                   "%OT"=x[,16]/rowSums(x[,16:19])*100,
                   "%OB"=x[,17]/rowSums(x[,16:19])*100,
-                  "%COT"=x[,18]/rowSums(x[,16:19])*100,
-                  "%COB"=x[,19]/rowSums(x[,16:19])*100,
+                  "%CTOT"=x[,18]/rowSums(x[,16:19])*100,
+                  "%CTOB"=x[,19]/rowSums(x[,16:19])*100,
                   "%pos_dup"=x[,7]/x[,3]*100,
                   "%CpG"=x[,10]/(x[,10]+x[,11])*100,
                   "%CHG"=x[,12]/(x[,12]+x[,13])*100,
@@ -126,7 +126,7 @@ for(i in 1:NS){
     }
 }
 colnames(misc)<-paste0("%",colnames(misc))
-misc<-round(misc,dig=2)
+misc<-round(misc,dig=3)
 
 
 ##Read the chr_info.txt
@@ -148,16 +148,16 @@ for(i in 1:NS){
 }
 colnames(chr_info)<-paste0("%",colnames(chr_info))
 ##keep chry with four digits
-chr_info[,2]<-round(chr_info[,2],dig=4)
-chr_info[,-2]<-round(chr_info[,-2],dig=2)
+chr_info[,2]<-round(chr_info[,2],dig=5)
+chr_info[,-2]<-round(chr_info[,-2],dig=3)
 
 qc<-NULL
 if(TRIM) qc<-cbind("reads_raw"=fastqc_raw[,1],misc[,-1],
-                   "%trimmed_bases"=round(trim[,"percent_trimmed"],dig=2),
-                   "%removed"=round(100-as.numeric(y[,1])/fastqc_raw[,1]*100,dig=2))
-qc<-cbind(qc,reads=y[,1],"%GC"=round(fastqc[,"%GC"],dig=2),"%dup_sequence"=round(100-fastqc[,"total_deduplicated_percentage"],dig=2))
+                   "%trimmed_bases"=round(trim[,"percent_trimmed"],dig=3),
+                   "%removed"=round(100-as.numeric(y[,1])/fastqc_raw[,1]*100,dig=3))
+qc<-cbind(qc,reads=y[,1],"%GC"=round(fastqc[,"%GC"],dig=3),"%dup_sequence"=round(100-fastqc[,"total_deduplicated_percentage"],dig=3))
 
-y<-cbind(qc,"%phix"=misc[,1],chr_info,round(y[,-1],dig=2))
+y<-cbind(qc,"%phix"=misc[,1],chr_info,round(y[,-1],dig=3))
 colnames(y)<-sub("^%","pct_",colnames(y))
 colnames(y)<-sub("^lambda_%","lambda_pct_",colnames(y))
 
