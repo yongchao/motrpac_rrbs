@@ -50,7 +50,7 @@ checknames<-function(x,title)
 samples<-y[,1]
 rownames(y)<-samples
 NS<-length(samples)
-y<-y[,-1]
+y<-y[,-1,drop=FALSE]
 fastqc<-readqcinfo("pre_align","fastqc")[,c("Total Sequences","%GC","total_deduplicated_percentage")]
 PAIRED<-FALSE
 if(2*length(grep("_R2$",rownames(fastqc)))==nrow(fastqc)){
@@ -61,7 +61,7 @@ if(2*length(grep("_R2$",rownames(fastqc)))==nrow(fastqc)){
            !=rownames(fastqc)[id-1])!=0){
         stop("the R1 and R2 files do not match in the fastqc info")
     }
-    fastqc<-(fastqc[id-1,]+fastqc[id,])/2
+    fastqc<-(fastqc[id-1,,drop=FALSE]+fastqc[id,,drop=FALSE])/2
 }
 rownames(fastqc)<-sub("_R1$","",rownames(fastqc))
 #read the trim info and also clean-up fastqc when necessary
@@ -74,7 +74,7 @@ if(TRIM){
            !=rownames(trim)[id-1])!=0){
         stop("the R1 and R2 files do not match in the trim info")
     }
-    trim<-(trim[id-1,]+trim[id,])/2
+    trim<-(trim[id-1,,drop=FALSE]+trim[id,,drop=FALSE])/2
     rownames(trim)<-sub("_R[12]$","",rownames(trim))
     if(checknames(trim,"trim")==2){
         trim<-trim[samples,]
@@ -82,13 +82,13 @@ if(TRIM){
     fastqc_raw<-fastqc[grep("^fastqc_raw \\| ",rownames(fastqc)),]
     rownames(fastqc_raw)<-sub("^fastqc_raw \\| ","",rownames(fastqc_raw))
     if(checknames(fastqc_raw,"fastq_raw")==2){
-        fastqc_raw<-fastqc_raw[samples,]
+        fastqc_raw<-fastqc_raw[samples,,drop=FALSE]
     }
-    fastqc<-fastqc[grep("^fastqc \\| ",rownames(fastqc)),]
+    fastqc<-fastqc[grep("^fastqc \\| ",rownames(fastqc)),,drop=FALSE]
 }
 rownames(fastqc)<-sub("^fastqc \\| ","",rownames(fastqc))
 if(checknames(fastqc,"fastqc")==2){
-    fastqc<-fastqc[samples,]
+    fastqc<-fastqc[samples,,drop=FALSE]
 }
 
 ##read phix and adapter_detected
@@ -109,20 +109,24 @@ for(i in 1:NS){
         misc[i,2]<-mean(zval)
         close(zz)
 
-        zz<-pipe(paste0("grep \"Fwd:  D0:\" fastq_trim/log/log.",SID))
-        zval<-scan(zz,"",quiet=TRUE)
-        close(zz)
-        if(length(zval)!=7 && zval[1]!="Fwd:" &&
-           length(grep("^other=",zval[6]))!=1 &&
-           length(grep("^(total=",zval[7]))!=1)
-        {
-            stop("The diversity adapter information is incorrect for sample",
+        if (dir.exists("fastq_attach")){
+            zz<-pipe(paste0("grep \"Fwd:  D0:\" fastq_trim/log/log.",SID))
+            zval<-scan(zz,"",quiet=TRUE)
+            close(zz)
+            if(length(zval)!=7 && zval[1]!="Fwd:" &&
+               length(grep("^other=",zval[6]))!=1 &&
+               length(grep("^(total=",zval[7]))!=1)
+            {
+                stop("The diversity adapter information is incorrect for sample",
                  SID)
+            }
+            z1<-as.numeric(sub("other=","",zval[6]))
+            z2<-as.numeric(sub("\\(total=(.*)\\)","\\1",zval[7],perl=TRUE))
+            misc[i,3]<-100-z2/fastqc_raw[i,1]*100
+            misc[i,4]<-z1/z2*100
+        }else{
+            misc[i,3]<-round(100-as.numeric(y[i,1])/fastqc_raw[i,1]*100,dig=3)
         }
-        z1<-as.numeric(sub("other=","",zval[6]))
-        z2<-as.numeric(sub("\\(total=(.*)\\)","\\1",zval[7],perl=TRUE))
-        misc[i,3]<-100-z2/fastqc_raw[i,1]*100
-        misc[i,4]<-z1/z2*100
     }
 }
 colnames(misc)<-paste0("%",colnames(misc))
@@ -152,7 +156,7 @@ chr_info[,2]<-round(chr_info[,2],dig=5)
 chr_info[,-2]<-round(chr_info[,-2],dig=3)
 
 qc<-NULL
-if(TRIM) qc<-cbind("reads_raw"=fastqc_raw[,1],misc[,-1],
+if(TRIM) qc<-cbind("reads_raw"=fastqc_raw[,1],misc[,-1,drop=FALSE],
                    "%trimmed_bases"=round(trim[,"percent_trimmed"],dig=3),
                    "%removed"=round(100-as.numeric(y[,1])/fastqc_raw[,1]*100,dig=3))
 qc<-cbind(qc,reads=y[,1],"%GC"=round(fastqc[,"%GC"],dig=3),"%dup_sequence"=round(100-fastqc[,"total_deduplicated_percentage"],dig=3))
@@ -160,5 +164,5 @@ qc<-cbind(qc,reads=y[,1],"%GC"=round(fastqc[,"%GC"],dig=3),"%dup_sequence"=round
 y<-cbind(qc,"%phix"=misc[,1],chr_info,round(y[,-1],dig=3))
 colnames(y)<-sub("^%","pct_",colnames(y))
 colnames(y)<-sub("^lambda_%","lambda_pct_",colnames(y))
-
+if(nrow(y)==1) rownames(y)<-samples
 write.table(y,"bismark_qc.csv",sep=",",col.names=NA,row.name=TRUE)

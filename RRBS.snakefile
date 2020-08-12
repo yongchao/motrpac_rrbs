@@ -17,6 +17,7 @@
 #
 include: "sample_sub.snakefile"
 ruleorder: trim>trim_single
+ruleorder: bismark>bismark_single
         
 localrules: bismark_all, pairedness,fastqc_all
 rule bismark_all:
@@ -39,7 +40,7 @@ rule bismark_all:
         
         cd ../bismark
         set +e
-	    bismark2summary
+        bismark2summary
         set -e
         bismark_4strand.sh >bismark_4strand.txt
 
@@ -59,8 +60,7 @@ rule trim_single:
     input:        
         trim_input+"{sample}_R1.fastq.gz"
     output:
-        "fastq_trim/{sample}_R1.fastq.gz",
-        temp("fastq_trim/{sample}_R1_val.fastq.gz")
+        temp("fastq_trim/{sample}_R1.fastq.gz")
     log:
         "fastq_trim/log/log.{sample}"
     shell:
@@ -71,8 +71,7 @@ rule trim:
     input:        
         expand(trim_input+"{{sample}}_{R}.fastq.gz",R=["R1","R2"])
     output:
-        expand("fastq_trim/{{sample}}_{R}.fastq.gz",R=["R1","R2"]),
-        temp(expand("fastq_trim/{{sample}}_{R}_val.fq.gz",R=["R1","R2"]))
+        temp(expand("fastq_trim/{{sample}}_{R}.fastq.gz",R=["R1","R2"]))
     priority:
         10 #This is preferred than trim_single, with default priority value of zero
     log:
@@ -81,28 +80,58 @@ rule trim:
         '''
         trim_rrbs.sh {input} >&{log}
         '''
+        
+def bam_info(wildcards):
+    sid=wildcards.sample
+    if R[s]==0:
+        return(expand("bismark/{sample}_R1_bismark_bt2.deduplicated.bam",sample=sid))
+    else:
+        return(expand("bismark/{sample}_R1_bismark_bt2_pe.deduplicated.bam",sample=sid))
+
 rule bismark:
     input:
-        fastq_info
+        expand(fastq+"{{sample}}_{R}.fastq.gz",R=["R1","R2"])
     output:
         state="bismark/log/OK.{sample}",
         bam="bismark/{sample}_R1_bismark_bt2_pe.deduplicated.bam"
     log:
         "bismark/log/{sample}.log"
-    threads: 20
+    threads: 24
     shell:
         '''
         bismark.sh {threads} {gdir} bismark {tmpdir} {input} >&{log}
         echo OK>{output.state}
         '''
+
+rule bismark_single:
+    input:
+        fastq+"{sample}_R1.fastq.gz"
+    output:
+        state="bismark/log/OK.{sample}",
+        bam="bismark/{sample}_R1_bismark_bt2.deduplicated.bam"
+    log:
+        "bismark/log/{sample}.log"
+    threads: 24
+    shell:
+        '''
+        bismark.sh {threads} {gdir} bismark {tmpdir} {input} >&{log}
+        echo OK>{output.state}
+        '''
+
+
 #this takes file before MSPI removal
 def trim_fastq_info(wildcards):
     sid=wildcards.sample
-    return(expand("fastq_trim/{sample}_{R}_val.fq.gz",sample=sid,R=R[sid]))
+    files=expand("fastq_trim/{sample}_{R}.fastq.gz",sample=sid,R=R[sid])
+    if trim_input=="fastq_attach":
+        files=expand("fastq_trim/{sample}_{R}_val.fq.gz",sample=sid,R=R[sid])
+    return(files)
 
 rule phix:
     input:
-        trim_fastq_info
+        fastq_info
+    params:
+        files=trim_fastq_info
     output:
         "phix/{sample}.txt"
     threads: 6
@@ -111,7 +140,8 @@ rule phix:
         gdir_root=$(dirname {gdir})
         gref=$gdir_root/misc_data/phix/phix
         out_tmp=phix/{wildcards.sample}_tmp.txt
-        bowtie2.sh -d phix $gref {threads} {input} >& $out_tmp
+        
+        bowtie2.sh -d phix $gref {threads} {params.files} >& $out_tmp
         mv $out_tmp {output}
         '''
 def fastqc_all_input(wildcards):
@@ -153,7 +183,7 @@ rule bismark_lambda:
         "lambda/log/OK.{sample}"
     log:
         "lambda/log/{sample}.log"
-    threads: 20
+    threads: 24
     shell:
         '''
         gdir_root=$(dirname {gdir})
@@ -161,12 +191,13 @@ rule bismark_lambda:
         bismark.sh {threads} $gref lambda {tmpdir} {input} >&{log}
         echo OK>{output}
         '''
+
 rule chr_info:
     input:
-        "bismark/{sample}_R1_bismark_bt2_pe.deduplicated.bam"
+        bam_info
     output:
         "chr_info/{sample}.txt"
     shell:
-        '''                                                                                                                                                                                                        bam_chrinfo.sh {input}                                                                                                                                                                                     '''
-
-
+        '''
+        bam_chrinfo.sh {input}
+        '''

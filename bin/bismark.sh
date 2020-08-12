@@ -30,7 +30,7 @@ fi
 date
 
 tmpdir=$(mktemp -d -p $tmpdir_root bismark.${SID}.XXX)
-bismark $gdir --multicore $Ncore --temp_dir $tmpdir $cmd
+bismark $gdir --non_directional --multicore $Ncore --temp_dir $tmpdir $cmd
 
 #sort the bam files according to the best alignment score and then by the readname
 #and write the sorted bam file back to the original file
@@ -59,9 +59,13 @@ else
     #Just use the position to deduplicate, good for MethCAP data
     deduplicate_bismark $optp --bam $bam >${SID}_dedup.txt
 fi
-bam=$(basename $bam .bam).deduplicated.bam
+
+##delete the old bam file to save the space, this is needed for bismark2summary
+#rm $bam
+
+dedup_bam=$(basename $bam .bam).deduplicated.bam
 date
-bismark_methylation_extractor --multicore $Ncore --comprehensive --bedgraph $bam
+bismark_methylation_extractor --multicore $Ncore --comprehensive --bedgraph $dedup_bam
 bismark2report -o ${SID}.html\
 	       -a $align_report
 
