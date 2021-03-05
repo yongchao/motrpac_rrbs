@@ -1,8 +1,15 @@
 #!/bin/bash -x
 set -eu -o pipefail
+methcap=$1
+shift
 
-index_adapter=AGATCGGAAGAGC
-index2_adapter=AAATCAAAAAAAC
+if [[ $methcap == 0 ]]; then 
+    index_adapter=AGATCGGAAGAGC
+    index2_adapter=AAATCAAAAAAAC
+else
+    index_adapter=AGATCGGAAGAGC
+    index2_adapter=$index_adapter
+fi
 #This program include two steps, one is trim_galore
 #and the othr is nugen way of removing diversity
 
@@ -33,7 +40,7 @@ if (( $paired == 0)); then
     mv ${R1}_trimmed.fq.gz ${R1}_val_1.fq.gz
 fi
 
-if [[ $(dirname $1) ==  fastq_attach ]]; then
+if [[ $(dirname $1) ==  fastq_attach && $methcap == 0 ]]; then
     #UMI operations
     #need extra step for removing the diversity
     opt2=""

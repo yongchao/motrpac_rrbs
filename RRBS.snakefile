@@ -16,6 +16,7 @@
 #work to do for the lambda to get the bisulfite conversion efficientcy, divided into three groups or not
 #
 include: "sample_sub.snakefile"
+
 ruleorder: trim>trim_single
 ruleorder: bismark>bismark_single
         
@@ -45,6 +46,7 @@ rule bismark_all:
         bismark_4strand.sh >bismark_4strand.txt
 
         cd ..
+		echo {methcap} >methcap.switch
         Rscript --vanilla {root}/bin/qc.R
         '''
 rule pairedness:
@@ -60,25 +62,25 @@ rule trim_single:
     input:        
         trim_input+"{sample}_R1.fastq.gz"
     output:
-        temp("fastq_trim/{sample}_R1.fastq.gz")
+        "fastq_trim/{sample}_R1.fastq.gz"
     log:
         "fastq_trim/log/log.{sample}"
     shell:
         '''
-        trim_rrbs.sh {input} >&{log}
+        trim_rrbs.sh {methcap} {input} >&{log}
         '''
 rule trim:
     input:        
         expand(trim_input+"{{sample}}_{R}.fastq.gz",R=["R1","R2"])
     output:
-        temp(expand("fastq_trim/{{sample}}_{R}.fastq.gz",R=["R1","R2"]))
+        expand("fastq_trim/{{sample}}_{R}.fastq.gz",R=["R1","R2"])
     priority:
         10 #This is preferred than trim_single, with default priority value of zero
     log:
         "fastq_trim/log/log.{sample}"
     shell:
         '''
-        trim_rrbs.sh {input} >&{log}
+        trim_rrbs.sh {methcap} {input} >&{log}
         '''
         
 def bam_info(wildcards):

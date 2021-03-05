@@ -1,5 +1,6 @@
 options(stringsAsFactors=FALSE)
-#running under the work root folder
+##running under the work root folder
+methcap<-scan("methcap.switch")
 getqc<-function(folder){
     x<-read.delim(file.path(folder,"bismark_summary_report.txt"),sep="\t",
                   head=TRUE,row.names=1,check.names=FALSE)
@@ -109,7 +110,7 @@ for(i in 1:NS){
         misc[i,2]<-mean(zval)
         close(zz)
 
-        if (dir.exists("fastq_attach")){
+        if (dir.exists("fastq_attach") && methcap==0){
             zz<-pipe(paste0("grep \"Fwd:  D0:\" fastq_trim/log/log.",SID))
             zval<-scan(zz,"",quiet=TRUE)
             close(zz)
