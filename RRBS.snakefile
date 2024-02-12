@@ -102,6 +102,10 @@ rule bismark:
     shell:
         '''
         bismark.sh {threads} {gdir} bismark {tmpdir} {input} >&{log}
+        noalign=$(grep "Number of paired-end alignments with a unique best hit" bismark/{wildcards.sample}_R1_bismark_bt2_PE_report.txt|sed 's/Number of paired-end alignments with a unique best hit://')
+        if (($noalign == 0)); then 
+            cp bismark/{wildcards.sample}_R1_bismark_bt2_pe.bam {output.bam}
+        fi
         echo OK>{output.state}
         '''
 

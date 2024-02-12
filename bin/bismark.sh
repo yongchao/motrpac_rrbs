@@ -56,7 +56,7 @@ if [[ -e ../fastq_attach ]]; then
     date
     deduplicate_bismark $optp --barcode --bam $bam >${SID}_dedup.txt
 else
-    #Just use the position to deduplicate, good for MethCAP data
+    #Just use the position to deduplicate, good for RRBS/methcap data that doesn't have UMI
     deduplicate_bismark $optp --bam $bam >${SID}_dedup.txt
 fi
 

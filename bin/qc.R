@@ -110,7 +110,7 @@ for(i in 1:NS){
         misc[i,2]<-mean(zval)
         close(zz)
 
-        if (dir.exists("fastq_attach") && methcap==0){
+        if (dir.exists("fastq_attach") && methcap==0){##for RRBS
             zz<-pipe(paste0("grep \"Fwd:  D0:\" fastq_trim/log/log.",SID))
             zval<-scan(zz,"",quiet=TRUE)
             close(zz)
@@ -139,8 +139,16 @@ chr_info<-matrix(NA,NS,5)
 colnames(chr_info)<-c("chrX","chrY","chrM","chrAuto","contig")
 
 readchr<-function(sid){
-    x<-read.table(paste0("chr_info/",sid,".txt"),
-                  row.names=2,strip.white=TRUE)
+    file<-paste0("chr_info/",sid,".txt")
+    no.line=scan(pipe(paste0("wc -l ",file)),n=1)
+    cat(no.line,"\n")
+    if(no.line==0){
+        x<-data.frame(c(0,0,0,0))
+        rownames(x)<-c("chrX","chrY","chrM","chr1")
+    }else{
+        x<-read.table(file,
+                      row.names=2,strip.white=TRUE)
+    }
     xt<-sum(x[,1])
     y<-x[c("chrX","chrY","chrM"),1]/xt*100
     y<-c(y,sum(x[grep("^chr[1-9]",rownames(x)),1])/xt*100)
