@@ -62,7 +62,7 @@ rule trim_single:
     input:        
         trim_input+"{sample}_R1.fastq.gz"
     output:
-        "fastq_trim/{sample}_R1.fastq.gz"
+        temp("fastq_trim/{sample}_R1.fastq.gz")
     log:
         "fastq_trim/log/log.{sample}"
     shell:
@@ -73,7 +73,7 @@ rule trim:
     input:        
         expand(trim_input+"{{sample}}_{R}.fastq.gz",R=["R1","R2"])
     output:
-        expand("fastq_trim/{{sample}}_{R}.fastq.gz",R=["R1","R2"])
+        temp(expand("fastq_trim/{{sample}}_{R}.fastq.gz",R=["R1","R2"]))
     priority:
         10 #This is preferred than trim_single, with default priority value of zero
     log:

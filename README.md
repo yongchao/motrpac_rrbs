@@ -4,7 +4,7 @@
 * [The MoTrPAC MethCAP MOP (web view version 2.0)](https://docs.google.com/document/d/e/2PACX-1vT_qPrhekYh8VMDVy3ACGYapnTol6aUmekR6-zh_10RR0jLXiUkfse9Y6KyTuMS2KDpOnoeEPM8mbVC/pub)
 * [rnq-seq snakemake implementation](https://github.com/yongchao/motrpac_rnaseq)
 
-Please note this pipeline is primarily written for RRBS pipeline, but it also works for MethCAP pipeline with different setting of the fastq files. For the RRBS pipeline, it required three fastq files (`${SID}_R1.fastq.gz`, `${SID}_I1.fastq.gz` and `${SID}_R2.fastq.gz`) in the `fastq_raw` folder, while for MethCAP pipeline, it required two fastq files (`${SID}_R1.fastq.gz`, and `${SID}_R2.fastq.gz`) in the fastq_raw folder, where `${SID}` is the unique name of each sample.  The pipeline will test  the absence of `_I1` file to switch to the MethCAP pipeline (see details in Section B below).
+Please note this pipeline is primarily written for RRBS pipeline. It required three fastq files (`${SID}_R1.fastq.gz`, `${SID}_I1.fastq.gz` and `${SID}_R2.fastq.gz`) in the `fastq_raw` folder, where `${SID}` is the unique name of each sample.  The pipeline will check the config setting of "methcap" switch to the MethCAP pipeline (see details in Section B below).
 
 # A. External softwares installation and bash environmental setup
 ## A.1 install extra software required for RRBS data
@@ -32,7 +32,6 @@ This is already done by the rnq-seq pipeline, we don't need to do anything more
 
 ## B.2 Run the snakemake pipeline
 * In a work folder, a subfolder `fastq_raw` contains the fastq files of all samples `${SID}_R1.fastq.gz`, `${SID}_I1.fastq.gz` and `${SID}_R2.fastq.gz`. where `${SID}` is the unique name of each sample.
-* If the `${SID}_I1.fastq.gz` is missing, we will assume the data is for MethCAP data. (Please note for the folder `fasstq_raw`, either all `_I1` files are missing or all `_I1` files exist)
 * Make sure the `MOTRPAC_root`, `PATH` and other environmental variables have been setup correctly according to section A.2
 * Run the command locally to debug possible problems below for the human genome  
   `snakemake -s $MOTRPAC_root/RRBS.snakefile`
@@ -40,4 +39,6 @@ This is already done by the rnq-seq pipeline, we don't need to do anything more
   `snakemake -s $MOTRPAC_root/RRBS.snakefile --config genome=rn6_ensembl_r96`
 * If the snakemake is running OK locally, then submit the snakemake jobs to the cluster. This is only necessary for large jobs. This script was written for Sinai LSF jobs submission system. Other cluster job submission system may need to write their own script.  
   `Snakemake.lsf -- -s $MOTRPAC_root/RRBS.snakefile --config genome=rn6_ensembl_r96`
+* If running the MethCap pipeline, please note MethCap is only for the human samples, use the config "methcap"(please note the value itself of methcap is ingored) as in below.
+ `Snakemake.lsf -- -s $MOTRPAC_root/RRBS.snakefile --config methcap=1 genome=hg38_encode_v38`
   
