@@ -39,6 +39,6 @@ This is already done by the rnq-seq pipeline, we don't need to do anything more
   `snakemake -s $MOTRPAC_root/RRBS.snakefile --config genome=rn6_ensembl_r96`
 * If the snakemake is running OK locally, then submit the snakemake jobs to the cluster. This is only necessary for large jobs. This script was written for Sinai LSF jobs submission system. Other cluster job submission system may need to write their own script.  
   `Snakemake.lsf -- -s $MOTRPAC_root/RRBS.snakefile --config genome=rn6_ensembl_r96`
-* If running the MethCap pipeline, please note MethCap is only for the human samples, use the config "methcap"(please note the value itself of methcap is ingored) as in below.
+* If running the MethCap pipeline, which is only for the human samples, use the config "methcap"(please note that the value itself of methcap is ignored) as in below.
  `Snakemake.lsf -- -s $MOTRPAC_root/RRBS.snakefile --config methcap=1 genome=hg38_encode_v38`
   
